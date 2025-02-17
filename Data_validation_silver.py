@@ -38,10 +38,10 @@ hired_df = hired_df.withColumnRenamed("Name", "name")
 
 # COMMAND ----------
 
-dept_valid_cond = (col("department_id").isNotNull()) & (col("department").isNotNull()) & (col("department") != "")
+dept_valid_cond = (col("department_id").cast(IntegerType()).isNotNull()) & (col("department").isNotNull()) & (col("department") != "")
 departments_valid = departments_df.filter(dept_valid_cond)
 departments_invalid = departments_df.filter(~dept_valid_cond) \
-    .withColumn("error_reason", lit("Error en validación de departments: department_id o department inválido"))
+    .withColumn("error_reason", lit("Error in departments validation: invalid department_id or department"))
 
 # COMMAND ----------
 
@@ -50,10 +50,10 @@ departments_invalid = departments_df.filter(~dept_valid_cond) \
 
 # COMMAND ----------
 
-job_valid_cond = (col("job_id").isNotNull()) & (col("job").isNotNull()) & (col("job") != "")
+job_valid_cond = (col("job_id").cast(IntegerType()).isNotNull()) & (col("job").isNotNull()) & (col("job") != "")
 jobs_valid = jobs_df.filter(job_valid_cond)
 jobs_invalid = jobs_df.filter(~job_valid_cond) \
-    .withColumn("error_reason", lit("Error en validación de jobs: job_id o job inválido"))
+    .withColumn("error_reason", lit("Error in jobs validation: invalid job_id or job"))
 
 # COMMAND ----------
 
@@ -66,21 +66,21 @@ hired_df = hired_df.withColumn("datetime", to_timestamp(col("datetime"), "yyyy-M
 
 # COMMAND ----------
 
-basic_hired_cond = (col("id").isNotNull()) & \
+basic_hired_cond = (col("id").cast(IntegerType()).isNotNull()) & \
                    (col("name").isNotNull()) & (col("name").rlike("^[A-Za-z ]+$")) & \
                    (col("datetime").isNotNull()) & (col("datetime") <= current_timestamp()) & \
                    (col("department_id").isNotNull()) & (col("job_id").isNotNull())
 
 hired_valid_basic = hired_df.filter(basic_hired_cond)
 hired_invalid_basic = hired_df.filter(~basic_hired_cond) \
-    .withColumn("error_reason", lit("Error en validación básica: id, name, datetime, department_id o job_id inválido"))
+    .withColumn("error_reason", lit("Error in hired validation: invalid id, name, datetime, department_id or job_id"))
 
 # COMMAND ----------
 
 departments_temp = departments_valid.select(col("department_id").alias("dept_valid"))
 hired_with_dept = hired_valid_basic.join(departments_temp, hired_valid_basic.department_id == departments_temp.dept_valid, how="left")
 hired_invalid_fk_dept = hired_with_dept.filter(col("dept_valid").isNull()) \
-    .withColumn("error_reason", lit("Error FK: department_id no encontrado en departments"))
+    .withColumn("error_reason", lit("Error in FK: department_id not found in departments"))
 hired_valid_fk = hired_with_dept.filter(col("dept_valid").isNotNull())
 
 # COMMAND ----------
@@ -88,7 +88,7 @@ hired_valid_fk = hired_with_dept.filter(col("dept_valid").isNotNull())
 jobs_temp = jobs_valid.select(col("job_id").alias("job_valid"))
 hired_with_job = hired_valid_fk.join(jobs_temp, hired_valid_fk.job_id == jobs_temp.job_valid, how="left")
 hired_invalid_fk_job = hired_with_job.filter(col("job_valid").isNull()) \
-    .withColumn("error_reason", lit("Error FK: job_id no encontrado en jobs"))
+    .withColumn("error_reason", lit("Error in FK: job_id not found in jobs"))
 hired_valid_final = hired_with_job.filter(col("job_valid").isNotNull())
 
 # COMMAND ----------
@@ -118,7 +118,7 @@ departments_invalid.write.mode("overwrite").format("delta").saveAsTable("logs.de
 
 jobs_invalid.write.mode("overwrite").format("delta").saveAsTable("logs.jobs_errors")
 
-print("Logs de registros inválidos generados para hired, departments y jobs.")
+print("Invalid log register created")
 
 # COMMAND ----------
 
@@ -134,5 +134,5 @@ departments_valid.write.mode("overwrite").format("delta").saveAsTable("silver.de
 
 jobs_valid.write.mode("overwrite").format("delta").saveAsTable("silver.jobs")
 
-print("Datos válidos guardados en la capa Silver")
+print("Silver layer successfully written")
 
