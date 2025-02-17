@@ -68,8 +68,12 @@ Additionally, the solution includes:
 4. **Database Integration:**  
    - Data from the Gold layer is migrated to a PostgreSQL database (hosted on Supabase).
    - JDBC is used to connect Databricks to the SQL database.
+  
+5. **Visualization:**  
+   - Final reports are visualized using external BI tools (Tableau).
+   - Visualization report connected directly to the SQL database.
 
-5. **GitHub Integration:**  
+6. **GitHub Integration:**  
    - Code is published to a GitHub repository with frequent commits documenting the development process.
    - Secret management is implemented (or alternatives such as environment variables and external configuration files) to protect sensitive information.
 
@@ -132,8 +136,8 @@ df_gold = spark.table("gold.report_dept_hires_above_avg")
 # Use secrets or environment variables for sensitive information
 jdbcUrl = "jdbc:postgresql://aws-0-us-west-1.pooler.supabase.com:6543/postgres?sslmode=require&prepareThreshold=0"
 connectionProperties = {
-    "user": "postgres.pftimcjeovkvebhkcbev",
-    "password": "cokge9-piwbyj-cunQaj",
+    "user": "jdbcUser",
+    "password": "jdbcPassword",
     "driver": "org.postgresql.Driver"
 }
 
